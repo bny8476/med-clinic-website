@@ -83,7 +83,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         if (allowedOrigins != null && !allowedOrigins.isBlank()) {
-            configuration.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+            java.util.List<String> origins = Arrays.stream(allowedOrigins.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .collect(java.util.stream.Collectors.toList());
+            configuration.setAllowedOriginPatterns(origins);
         } else {
             // Fail fast rather than opening credentialed CORS to any origin
             throw new IllegalStateException("cors.allowed-origins must be configured");
