@@ -65,7 +65,7 @@ const PnLStatement = () => {
         ) : pnlData ? (
           <div className="flex flex-col gap-3">
             <div className="p-4 bg-green-50 rounded-lg flex justify-between items-center border border-green-100">
-              <span className="font-semibold text-green-800">Total Revenue (OPD + Lab)</span>
+              <span className="font-semibold text-green-800">Total Revenue (OPD + Pharmacy + Lab)</span>
               <span className="text-xl font-bold text-green-700">{formatCurrency(pnlData.totalRevenue)}</span>
             </div>
 

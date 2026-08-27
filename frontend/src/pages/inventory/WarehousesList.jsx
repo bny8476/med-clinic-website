@@ -43,7 +43,7 @@ const WarehousesList = () => {
 
   const sampleWarehouses = warehouses.length > 0 ? warehouses : [
     { id: 1, name: 'Main Central Depot', code: 'WH-CENTRAL', location: 'Building A, Basement 1', itemsCount: 1420, manager: 'Suresh Kumar' },
-    { id: 2, name: 'Medical Supplies Sub-Store', code: 'WH-SUPPLIES', location: 'Ground Floor, Room 102', itemsCount: 450, manager: 'Amit Verma' },
+    { id: 2, name: 'Pharmacy Sub-Store', code: 'WH-PHARM', location: 'Ground Floor, Room 102', itemsCount: 450, manager: 'Amit Verma' },
     { id: 3, name: 'OT & Surgical Storage', code: 'WH-SURGICAL', location: '2nd Floor, OT Complex', itemsCount: 280, manager: 'Nurse Sunita' },
   ];
 

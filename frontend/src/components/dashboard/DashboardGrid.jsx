@@ -1,6 +1,6 @@
 import * as LucideIcons from 'lucide-react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { cn } from '../../utils/cn';
+import { cn } from '../../utils/pharmacy/cn';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, List } from 'lucide-react';
 

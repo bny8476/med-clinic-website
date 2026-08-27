@@ -3,6 +3,7 @@ import useAuthStore, { isTokenValid } from '../store/authStore';
 import ErrorBoundary from '../components/ui/ErrorBoundary';
 import NotificationBell from '../components/NotificationBell';
 import ActivityDropdown from '../components/ActivityDropdown';
+import MessageDropdown from '../components/pharmacy/layout/MessageDropdown';
 import CommandPalette from '../components/ui/CommandPalette';
 import { Link, Navigate, Outlet, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -137,6 +138,9 @@ const DashboardLayout = ({ portalSlug, allowedRoles }) => {
                       <button onClick={() => { setIsQuickActionOpen(false); window.location.pathname = '/patient/book'; }} className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2.5">
                         <span className="p-1 rounded bg-indigo-50 text-indigo-600"><Stethoscope size={13} /></span> Book Appointment
                       </button>
+                      <button onClick={() => { setIsQuickActionOpen(false); window.location.pathname = '/patient/order-medicine'; }} className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2.5">
+                        <span className="p-1 rounded bg-orange-50 text-orange-600"><ShieldPlus size={13} /></span> Order Medicine
+                      </button>
                       <button onClick={() => { setIsQuickActionOpen(false); window.location.pathname = '/patient/lab-reports'; }} className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2.5">
                         <span className="p-1 rounded bg-blue-50 text-blue-600"><Bell size={13} /></span> View Lab Reports
                       </button>
@@ -168,6 +172,7 @@ const DashboardLayout = ({ portalSlug, allowedRoles }) => {
               
               <NotificationBell />
 
+              <MessageDropdown />
               <ActivityDropdown />
             </div>
 
