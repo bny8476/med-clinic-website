@@ -81,3 +81,11 @@ stripe:
   secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
   webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
   publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
+
+pharmacy:
+  service:
+    url: ${PHARMACY_SERVICE_URL:https://pms-pharmadesk.onrender.com}
+    api-key: ${PHARMACY_API_KEY:pharma_api_key_sample_12345}
+    webhook-secret: ${PHARMACY_WEBHOOK_SECRET:pharma_webhook_secret_67890}
+    connect-timeout-ms: 5000
+    read-timeout-ms: 10000
