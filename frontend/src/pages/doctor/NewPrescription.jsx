@@ -273,7 +273,7 @@ const NewPrescription = () => {
     queryFn: async () => {
       if (!debouncedSearch) return [];
       try {
-        return (await axiosPrivate.get(`/pharmacy/medicines/search?name=${encodeURIComponent(debouncedSearch)}`)).data;
+        return (await axiosPrivate.get(`/integrations/pharmacy/medicines/search?keyword=${encodeURIComponent(debouncedSearch)}`)).data;
       } catch(e) {
           return [];
       }
@@ -384,18 +384,19 @@ const NewPrescription = () => {
   };
 
   const sendToPharmacyMutation = useMutation({
-    mutationFn: async (pharmacyUserId) => {
-      const payload = pharmacyUserId ? { pharmacyUserId: parseInt(pharmacyUserId) } : {};
-      if (!prescriptionId) {
+    mutationFn: async () => {
+      let targetRxId = prescriptionId;
+      if (!targetRxId) {
         const res = await axiosPrivate.post(`/prescriptions`, buildPayload());
-        return axiosPrivate.post(`/prescriptions/${res.data.id}/send`, payload);
+        targetRxId = res.data.id;
+        setPrescriptionId(targetRxId);
       }
-      return axiosPrivate.post(`/prescriptions/${prescriptionId}/send`, payload);
+      return axiosPrivate.post(`/integrations/pharmacy/prescriptions/${targetRxId}/send`);
     },
     onSuccess: (res) => {
       setPrescriptionStatus('PENDING'); // Sent to pharmacy sets status to PENDING
       queryClient.invalidateQueries(['patientPrescriptions', patientId]);
-      toast.success('Prescription sent to pharmacy successfully');
+      toast.success('Prescription submitted to external pharmacy service');
       setIsPharmacyModalOpen(false);
     },
     onError: handleMutationError

@@ -39,7 +39,19 @@ public class Prescription {
     /** Set by pharmacy when prescription is dispensed/verified */
     @Builder.Default
     @Column(name = "pharmacy_status")
-    private String pharmacyStatus = "PENDING";
+    private String pharmacyStatus = "NOT_SENT";
+
+    @Column(name = "pharmacy_reference_id")
+    private String pharmacyReferenceId;
+
+    @Column(name = "sent_to_pharmacy_at")
+    private LocalDateTime sentToPharmacyAt;
+
+    @Column(name = "last_pharmacy_status_updated_at")
+    private LocalDateTime lastPharmacyStatusUpdatedAt;
+
+    @Column(name = "pharmacy_sync_error", columnDefinition = "TEXT")
+    private String pharmacySyncError;
 
     @Column(name = "dispensed_at")
     private LocalDateTime dispensedAt;

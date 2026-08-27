@@ -35,6 +35,10 @@ public class PrescriptionResponse {
     private LocalDateTime signedAt;
     private String signatureHash;
     private String pharmacyStatus;
+    private String pharmacyReferenceId;
+    private LocalDateTime sentToPharmacyAt;
+    private LocalDateTime lastPharmacyStatusUpdatedAt;
+    private String pharmacySyncError;
     private Long assignedPharmacyUserId;
     private LocalDateTime dispensedAt;
     private String dispensedBy;

@@ -150,6 +150,7 @@ const AmbulanceDashboard = lazy(() => import('./pages/ambulance/AmbulanceDashboa
 const SuperAdminConsole = lazy(() => import('./pages/super-admin/SuperAdminConsole'));
 const BranchManagement = lazy(() => import('./pages/admin/BranchManagement'));
 const UserManagement = lazy(() => import('./pages/admin/UserManagement'));
+const PharmacySyncAdminDashboard = lazy(() => import('./pages/admin/PharmacySyncAdminDashboard'));
 const DicomViewer = lazy(() => import('./pages/radiologist/DicomViewer'));
 const RadiologyReporting = lazy(() => import('./pages/radiologist/RadiologyReporting'));
 const RadiologyRequests = lazy(() => import('./pages/radiologist/RadiologyRequests'));
@@ -715,6 +716,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="branches" element={<BranchManagement />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="pharmacy-sync" element={<PharmacySyncAdminDashboard />} />
           </Route>
 
           {/* ── Fallbacks ───────────────────────────────────────────────── */}
