@@ -21,4 +21,4 @@ COPY --from=build --chown=appuser:appgroup /app/target/*.jar app.jar
 USER appuser
 
 EXPOSE 8080
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=45.0", "-XX:+UseG1GC", "-XX:+UseStringDeduplication", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=45.0", "-XX:+ExitOnOutOfMemoryError", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseG1GC", "-XX:+UseStringDeduplication", "-jar", "app.jar"]
