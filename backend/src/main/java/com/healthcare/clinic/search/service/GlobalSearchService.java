@@ -5,9 +5,7 @@ import com.healthcare.clinic.appointment.repository.AppointmentRepository;
 import com.healthcare.clinic.identity.entity.User;
 import com.healthcare.clinic.identity.repository.UserRepository;
 import com.healthcare.clinic.laboratory.repository.LabTestRequestRepository;
-import com.healthcare.clinic.pharmacy.entity.Medicine;
-import com.healthcare.clinic.pharmacy.repository.MedicineRepository;
-import com.healthcare.clinic.pharmacy.repository.PrescriptionRepository;
+import com.healthcare.clinic.doctor.repository.PrescriptionRepository;
 import com.healthcare.clinic.search.dto.GlobalSearchResultDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +24,6 @@ public class GlobalSearchService {
     private final AppointmentRepository appointmentRepository;
     private final LabTestRequestRepository labTestRequestRepository;
     private final PrescriptionRepository prescriptionRepository;
-    private final MedicineRepository medicineRepository;
 
     public List<GlobalSearchResultDto> performGlobalSearch(String query) {
         List<GlobalSearchResultDto> results = new ArrayList<>();
@@ -45,17 +42,6 @@ public class GlobalSearchService {
                 .subtitle(u.getEmail())
                 .icon(u.getRoles().stream().anyMatch(r -> r.getName().equals("ROLE_PATIENT")) ? "User" : "Activity")
                 .build()));
-
-        // 2. Search Medicines
-        medicineRepository.findByNameContainingIgnoreCase(q).stream().limit(5).forEach(m -> {
-            results.add(GlobalSearchResultDto.builder()
-                    .id(m.getId())
-                    .type("medicine")
-                    .title(m.getName())
-                    .subtitle("Manufacturer: " + m.getManufacturer())
-                    .icon("Pill")
-                    .build());
-        });
 
         // 3. Try parsing as numeric ID for specific entity lookups
         try {

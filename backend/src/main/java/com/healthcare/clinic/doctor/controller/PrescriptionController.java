@@ -54,7 +54,7 @@ public class PrescriptionController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ROLE_DOCTOR')")
-    @AuditableAction(module = "PHARMACY", action = "CREATE_PRESCRIPTION", resourceType = "Prescription", sensitivityLevel = "HIGH")
+    @AuditableAction(module = "CLINIC", action = "CREATE_PRESCRIPTION", resourceType = "Prescription", sensitivityLevel = "HIGH")
     public ResponseEntity<PrescriptionResponse> createPrescription(@Valid @RequestBody PrescriptionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(prescriptionService.createPrescription(request));
     }
@@ -205,5 +205,48 @@ public class PrescriptionController {
     public ResponseEntity<List<PrescriptionRefillRequestDTO>> getPatientRefillRequests() {
         Long patientId = com.healthcare.clinic.security.SecurityUtils.getCurrentUserId();
         return ResponseEntity.ok(prescriptionRefillService.getPatientRefillRequests(patientId));
+    }
+
+    @GetMapping({"/pharmacy/queue", "/pharmacy/pending"})
+    @PreAuthorize("hasAuthority('ROLE_PHARMACIST') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_ADMIN')")
+    public ResponseEntity<List<PrescriptionResponse>> getPharmacyQueue() {
+        return ResponseEntity.ok(prescriptionService.getPendingPharmacyPrescriptions());
+    }
+
+    @PostMapping("/{id}/claim")
+    @PreAuthorize("hasAuthority('ROLE_PHARMACIST') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_ADMIN')")
+    public ResponseEntity<PrescriptionResponse> claimPrescription(@PathVariable Long id) {
+        Long pharmacistId = com.healthcare.clinic.security.SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(prescriptionService.claimPrescription(id, pharmacistId));
+    }
+
+    @PostMapping("/{id}/processing")
+    @PreAuthorize("hasAuthority('ROLE_PHARMACIST') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_ADMIN')")
+    public ResponseEntity<PrescriptionResponse> startProcessingPrescription(@PathVariable Long id) {
+        Long pharmacistId = com.healthcare.clinic.security.SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(prescriptionService.startProcessingPrescription(id, pharmacistId));
+    }
+
+    @PostMapping("/{id}/dispense")
+    @PreAuthorize("hasAuthority('ROLE_PHARMACIST') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_ADMIN')")
+    public ResponseEntity<PrescriptionResponse> dispensePrescription(@PathVariable Long id) {
+        Long pharmacistId = com.healthcare.clinic.security.SecurityUtils.getCurrentUserId();
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String username = auth != null ? auth.getName() : "Pharmacist";
+        return ResponseEntity.ok(prescriptionService.dispensePrescription(id, pharmacistId, username));
+    }
+
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasAuthority('ROLE_PHARMACIST') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_ADMIN')")
+    public ResponseEntity<PrescriptionResponse> rejectPrescription(@PathVariable Long id, @RequestBody(required = false) java.util.Map<String, String> body) {
+        Long pharmacistId = com.healthcare.clinic.security.SecurityUtils.getCurrentUserId();
+        String reason = body != null ? body.get("reason") : "Rejected by Pharmacist";
+        return ResponseEntity.ok(prescriptionService.rejectPrescription(id, pharmacistId, reason));
+    }
+
+    @PostMapping("/{id}/cancel-pharmacy")
+    @PreAuthorize("hasAuthority('ROLE_PHARMACIST') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_ADMIN')")
+    public ResponseEntity<PrescriptionResponse> cancelPharmacyPrescription(@PathVariable Long id) {
+        return ResponseEntity.ok(prescriptionService.cancelPharmacyPrescription(id));
     }
 }

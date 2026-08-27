@@ -131,8 +131,6 @@ public class DataSeeder implements CommandLineRunner {
         seedUser("receptionist@clinic.com", "Clinic@2026#Reception", "Rec", "Eptionist", Set.of("ROLE_RECEPTION"));
         seedUser("labtech@clinic.com", "Clinic@2026#LabTech", "Lab", "Tech", Set.of("ROLE_LAB_TECH"));
         seedUser("radiologist@clinic.com", "Clinic@2026#Radio", "Radio", "Logist", Set.of("ROLE_RADIOLOGIST"));
-        seedUser("pharmacist@clinic.com", "Clinic@2026#Pharmacy", "Pharma", "Cist", Set.of("ROLE_PHARMACIST"));
-        seedUser("pharmacymanager@clinic.com", "Clinic@2026#PharmMgr", "Pharma", "Manager", Set.of("ROLE_PHARMACIST", "ROLE_INVENTORY_MANAGER"));
         seedUser("accountant@clinic.com", "Clinic@2026#Account", "Acc", "Ountant", Set.of("ROLE_ACCOUNTANT"));
         seedUser("hrmanager@clinic.com", "Clinic@2026#HR", "HR", "Manager", Set.of("ROLE_HR"));
         seedUser("staff@clinic.com", "Clinic@2026#Staff", "Staff", "User", Set.of("ROLE_SUPPORT"));
@@ -177,7 +175,6 @@ public class DataSeeder implements CommandLineRunner {
             case "ROLE_BRANCH_ADMIN" -> "branch-admin";
             case "ROLE_NURSE" -> "nurse";
             case "ROLE_RECEPTION" -> "reception";
-            case "ROLE_PHARMACIST" -> "pharmacy";
             case "ROLE_LAB_TECH", "ROLE_LAB", "ROLE_PATHOLOGIST", "ROLE_LAB_SENIOR" -> "lab";
             case "ROLE_RADIOLOGIST" -> "radiologist";
             case "ROLE_ACCOUNTANT" -> "accountant";

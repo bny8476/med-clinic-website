@@ -6,7 +6,7 @@ import com.healthcare.clinic.patient.repository.PatientProfileRepository;
 import com.healthcare.clinic.doctor.repository.DoctorProfileRepository;
 import com.healthcare.clinic.appointment.repository.AppointmentRepository;
 import com.healthcare.clinic.laboratory.repository.LabTestRequestRepository;
-import com.healthcare.clinic.pharmacy.repository.PrescriptionRepository;
+import com.healthcare.clinic.doctor.repository.PrescriptionRepository;
 import com.healthcare.clinic.reception.repository.ClinicPaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import com.healthcare.clinic.reception.entity.ClinicPayment;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 @Service
@@ -49,7 +48,6 @@ public class AdminDashboardService {
 
         long totalStaff = userRepository.countByRolesName("ROLE_NURSE") + 
                           userRepository.countByRolesName("ROLE_RECEPTIONIST") + 
-                          userRepository.countByRolesName("ROLE_PHARMACIST") + 
                           userRepository.countByRolesName("ROLE_LAB_TECHNICIAN") + 
                           userRepository.countByRolesName("ROLE_ADMIN");
 

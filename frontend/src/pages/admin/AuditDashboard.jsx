@@ -83,7 +83,6 @@ const AuditDashboard = () => {
           <option value="PATIENT">Patient</option>
           <option value="MEDICAL_RECORD">Medical Record</option>
           <option value="LABORATORY">Laboratory</option>
-          <option value="PHARMACY">Pharmacy</option>
           <option value="BILLING">Billing</option>
         </select>
         <input 

@@ -1,5 +1,5 @@
 import logger from '../../utils/logger';
-import useDebounce from '../../hooks/pharmacy/useDebounce';
+import useDebounce from '../../hooks/useDebounce';
 import toast from 'react-hot-toast';
 import useAuthStore from '../../store/authStore';
 import Card from '../../components/ui/Card';
@@ -147,7 +147,7 @@ const NewPrescription = () => {
     queryKey: ['pharmacyUsers'],
     queryFn: async () => {
       const res = await axiosPrivate.get(`/prescriptions/pharmacy-recipients`);
-      return res.data.data || [];
+      return res.data || [];
     }
   });
 
@@ -269,20 +269,7 @@ const NewPrescription = () => {
   };
 
   const { data: medicines = [], isFetching: isSearching } = useQuery({
-    queryKey: ['pharmacy-medicines-search', debouncedSearch],
-    queryFn: async () => {
-      if (!debouncedSearch) return [];
-      try {
-        return (await axiosPrivate.get(`/pharmacy/medicines/search?name=${encodeURIComponent(debouncedSearch)}`)).data;
-      } catch(e) {
-          return [];
-      }
-    },
-    enabled: debouncedSearch.length >= 1,
-  });
-
-  const { data: externalMedicines = [], isFetching: isSearchingExternal } = useQuery({
-    queryKey: ['external-medicines-search', debouncedSearch],
+    queryKey: ['doctor-medicines-search', debouncedSearch],
     queryFn: async () => {
       if (!debouncedSearch) return [];
       try {
@@ -393,13 +380,15 @@ const NewPrescription = () => {
       return axiosPrivate.post(`/prescriptions/${prescriptionId}/send`, payload);
     },
     onSuccess: (res) => {
-      setPrescriptionStatus('PENDING'); // Sent to pharmacy sets status to PENDING
+      setPrescriptionStatus('PENDING');
       queryClient.invalidateQueries(['patientPrescriptions', patientId]);
       toast.success('Prescription sent to pharmacy successfully');
       setIsPharmacyModalOpen(false);
+      setIsPreview(true);
     },
     onError: handleMutationError
   });
+
   const saveDraftMutation = useMutation({
     mutationFn: async () => axiosPrivate.post(`/prescriptions/draft`, buildPayload()),
     onSuccess: (res) => {
@@ -425,7 +414,7 @@ const NewPrescription = () => {
       setSentAt(new Date());
       setIsPreview(true);
       queryClient.invalidateQueries(['patientPrescriptions', patientId]);
-      toast.success('Prescription sent successfully');
+      toast.success('Prescription saved successfully');
     },
     onError: handleMutationError
   });
@@ -557,18 +546,24 @@ const NewPrescription = () => {
           <p className="text-slate-500 text-xs font-medium">Create and send prescription to patient and pharmacy</p>
         </div>
 
-        {/* Top-Right Action */}
-        <div className="flex flex-col items-end gap-1">
+        {/* Top-Right Actions */}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleSendToPharmacy}
+            disabled={sendToPharmacyMutation.isPending}
+            className="bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs px-5 py-3 rounded-2xl flex items-center gap-2 shadow-md hover:shadow-lg transition"
+          >
+            <Send className="w-4 h-4" />
+            Send to Pharmacy
+          </button>
           <button 
             onClick={() => sendMutation.mutate()}
             disabled={sendMutation.isPending}
             className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-3 rounded-2xl flex items-center gap-2 shadow-md hover:shadow-lg transition"
           >
             <Send className="w-4 h-4" />
-            Save & Send Prescription
-            <ChevronRight className="w-4 h-4" />
+            Save & Finalize
           </button>
-          <span className="text-[11px] text-slate-400 font-medium">Prescription will be sent to pharmacy</span>
         </div>
       </div>
 
@@ -1087,63 +1082,6 @@ const NewPrescription = () => {
           </div>
       )}
 
-      {/* Pharmacy Selection Modal */}
-      {isPharmacyModalOpen && (
-          <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-            role="dialog"
-            aria-modal="true"
-          >
-              <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-                  <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                      <h3 className="font-bold text-slate-800">Select Pharmacy / Pharmacist</h3>
-                      <button 
-                        onClick={() => setIsPharmacyModalOpen(false)} 
-                        className="text-slate-400 hover:text-slate-600"
-                      >
-                          <X className="w-5 h-5" aria-hidden="true" />
-                      </button>
-                  </div>
-                  <div className="p-5 flex flex-col gap-4">
-                      <div>
-                          <label className="block text-xs font-semibold text-slate-600 mb-1.5">Assign To</label>
-                          <select 
-                              value={selectedPharmacyUserId} 
-                              onChange={e => setSelectedPharmacyUserId(e.target.value)}
-                              className="w-full px-3 py-2 bg-white border border-slate-200 rounded-md text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                          >
-                              <option value="">Any Available Pharmacist</option>
-                              {pharmacyUsers.map(u => (
-                                  <option key={u.id} value={u.id}>{u.firstName} {u.lastName} ({u.role})</option>
-                              ))}
-                          </select>
-                          <p className="text-[10px] text-slate-400 mt-1">If "Any Available" is selected, all pharmacists will see this prescription in their pending queue.</p>
-                      </div>
-                  </div>
-                  <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-                      <button 
-                          onClick={() => setIsPharmacyModalOpen(false)}
-                          className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-                      >
-                          Cancel
-                      </button>
-                      <button 
-                          onClick={confirmSendToPharmacy}
-                          disabled={sendToPharmacyMutation.isPending}
-                          className="px-4 py-2 text-sm font-bold text-white bg-teal-600 border border-teal-600 rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2 disabled:opacity-50"
-                      >
-                          {sendToPharmacyMutation.isPending ? (
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          ) : (
-                              <Send className="w-4 h-4" />
-                          )}
-                          Send Prescription
-                      </button>
-                  </div>
-              </div>
-          </div>
-      )}
-
       {/* CDS Block Modal */}
       {isCdsModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -1202,8 +1140,61 @@ const NewPrescription = () => {
           </div>
       )}
 
+      {/* Pharmacy Selection Modal */}
+      {isPharmacyModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+                  <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                      <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <Send className="w-5 h-5 text-teal-600" />
+                        Send to Pharmacy
+                      </h3>
+                      <button 
+                        onClick={() => setIsPharmacyModalOpen(false)}
+                        className="text-slate-400 hover:text-slate-600"
+                      >
+                          <X className="w-5 h-5" />
+                      </button>
+                  </div>
+                  <div className="p-6 flex flex-col gap-4">
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                        Select a specific pharmacist to receive and process this prescription, or choose 'Any Pharmacist'.
+                      </p>
+                      <div>
+                          <label className="block text-xs font-bold text-slate-700 mb-2">Target Pharmacist</label>
+                          <select
+                              value={selectedPharmacyUserId}
+                              onChange={e => setSelectedPharmacyUserId(e.target.value)}
+                              className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                          >
+                              <option value="">Any Available Pharmacist (Queue)</option>
+                              {pharmacyUsers.map(u => (
+                                  <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                              ))}
+                          </select>
+                      </div>
+                  </div>
+                  <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                      <button 
+                          onClick={() => setIsPharmacyModalOpen(false)}
+                          className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition"
+                      >
+                          Cancel
+                      </button>
+                      <button 
+                          onClick={confirmSendToPharmacy}
+                          disabled={sendToPharmacyMutation.isPending}
+                          className="px-5 py-2 text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-md transition flex items-center gap-2"
+                      >
+                          <Send className="w-4 h-4" />
+                          {sendToPharmacyMutation.isPending ? 'Sending...' : 'Confirm & Send'}
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
     </div>
-    
   );
 };
 

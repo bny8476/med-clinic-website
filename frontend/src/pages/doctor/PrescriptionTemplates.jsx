@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import clsx from 'clsx';
 import toast from 'react-hot-toast';
-import useDebounce from '../../hooks/pharmacy/useDebounce';
+import useDebounce from '../../hooks/useDebounce';
 import Button from '../../components/ui/Button';
 import Modal from '../../components/ui/Modal';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';

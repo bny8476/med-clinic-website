@@ -35,6 +35,7 @@ public class PrescriptionResponse {
     private LocalDateTime signedAt;
     private String signatureHash;
     private String pharmacyStatus;
+    private Long assignedPharmacyUserId;
     private LocalDateTime dispensedAt;
     private String dispensedBy;
     private List<PrescriptionItemResponse> items;

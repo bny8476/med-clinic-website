@@ -52,6 +52,7 @@ public class PrescriptionService {
     private final LabTestRequestRepository labTestRequestRepository;
     private final com.healthcare.clinic.nursing.repository.MedicationAdministrationRecordRepository marRepository;
     private final AppointmentRepository appointmentRepository;
+    private final com.healthcare.clinic.notification.service.InAppNotificationService inAppNotificationService;
 
     @Transactional(readOnly = true)
     public List<PrescriptionResponse> getPrescriptionsForPatient(Long patientId) {
@@ -473,6 +474,7 @@ public class PrescriptionService {
                 .signedAt(prescription.getSignedAt())
                 .signatureHash(prescription.getSignatureHash())
                 .pharmacyStatus(prescription.getPharmacyStatus())
+                .assignedPharmacyUserId(prescription.getAssignedPharmacyUserId())
                 .dispensedAt(prescription.getDispensedAt())
                 .dispensedBy(prescription.getDispensedBy())
                 .items(itemResponses)
@@ -699,6 +701,94 @@ public class PrescriptionService {
         return mapToResponse(prescriptionRepository.save(prescription));
     }
 
+    @Transactional(readOnly = true)
+    public List<PrescriptionResponse> getPendingPharmacyPrescriptions() {
+        return prescriptionRepository.findByPharmacyStatusInOrderByCreatedAtDesc(
+                List.of("PENDING", "ACCEPTED", "PROCESSING", "DISPENSED", "REJECTED", "CANCELLED")
+        ).stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
 
+    @Transactional
+    public PrescriptionResponse claimPrescription(Long id, Long pharmacistId) {
+        int updated = prescriptionRepository.claimPrescription(id, pharmacistId);
+        if (updated == 0) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.CONFLICT, 
+                "Prescription has already been claimed or processed by another pharmacist."
+            );
+        }
+        Prescription rx = prescriptionRepository.findById(id).orElseThrow();
+        if (inAppNotificationService != null) {
+            try {
+                inAppNotificationService.sendToUser(rx.getDoctorId(), "Prescription Claimed", "Pharmacist claimed Prescription #" + id, "PRESCRIPTION", id);
+            } catch (Exception ignored) {}
+        }
+        return mapToResponse(rx);
+    }
+
+    @Transactional
+    public PrescriptionResponse startProcessingPrescription(Long id, Long pharmacistId) {
+        int updated = prescriptionRepository.startProcessingPrescription(id, pharmacistId);
+        if (updated == 0) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.CONFLICT, 
+                "Cannot start processing. Prescription is not claimed by you or invalid state."
+            );
+        }
+        Prescription rx = prescriptionRepository.findById(id).orElseThrow();
+        return mapToResponse(rx);
+    }
+
+    @Transactional
+    public PrescriptionResponse dispensePrescription(Long id, Long pharmacistId, String dispensedBy) {
+        int updated = prescriptionRepository.dispensePrescription(id, pharmacistId, dispensedBy);
+        if (updated == 0) {
+            // Fallback for admin or unassigned dispensing
+            Prescription rx = prescriptionRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Prescription not found with id: " + id));
+            rx.setPharmacyStatus("DISPENSED");
+            rx.setDispensedAt(LocalDateTime.now());
+            rx.setDispensedBy(dispensedBy != null ? dispensedBy : "Pharmacist");
+            rx.setAssignedPharmacyUserId(pharmacistId);
+            Prescription saved = prescriptionRepository.save(rx);
+            return mapToResponse(saved);
+        }
+        Prescription rx = prescriptionRepository.findById(id).orElseThrow();
+        if (inAppNotificationService != null) {
+            try {
+                inAppNotificationService.sendToUser(rx.getPatientId(), "Prescription Dispensed", "Your Prescription #" + id + " has been dispensed.", "PRESCRIPTION", id);
+                inAppNotificationService.sendToUser(rx.getDoctorId(), "Prescription Dispensed", "Prescription #" + id + " has been dispensed by pharmacy.", "PRESCRIPTION", id);
+            } catch (Exception ignored) {}
+        }
+        return mapToResponse(rx);
+    }
+
+    @Transactional
+    public PrescriptionResponse rejectPrescription(Long id, Long pharmacistId, String reason) {
+        int updated = prescriptionRepository.rejectPrescription(id, pharmacistId);
+        if (updated == 0) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.CONFLICT, 
+                "Cannot reject prescription; invalid state or claimed by another user."
+            );
+        }
+        Prescription rx = prescriptionRepository.findById(id).orElseThrow();
+        if (inAppNotificationService != null) {
+            try {
+                inAppNotificationService.sendToUser(rx.getDoctorId(), "Prescription Rejected", "Prescription #" + id + " was rejected: " + (reason != null ? reason : "No reason provided"), "PRESCRIPTION", id);
+            } catch (Exception ignored) {}
+        }
+        return mapToResponse(rx);
+    }
+
+    @Transactional
+    public PrescriptionResponse cancelPharmacyPrescription(Long id) {
+        Prescription prescription = prescriptionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Prescription not found with id: " + id));
+
+        prescription.setPharmacyStatus("CANCELLED");
+        Prescription saved = prescriptionRepository.save(prescription);
+        return mapToResponse(saved);
+    }
 
 }

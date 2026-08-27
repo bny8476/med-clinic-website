@@ -1,5 +1,5 @@
 import useAuthStore from '../store/authStore';
-import useDebounce from '../hooks/pharmacy/useDebounce';
+import useDebounce from '../hooks/useDebounce';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { axiosPrivate } from '../api/axios';

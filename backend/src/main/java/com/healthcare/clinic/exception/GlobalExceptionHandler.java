@@ -2,9 +2,6 @@ package com.healthcare.clinic.exception;
 
 import com.healthcare.clinic.clinicaldecision.exception.CdsCriticalSafetyException;
 import com.healthcare.clinic.common.dto.ApiResponse;
-import com.healthcare.clinic.pharmacy.exception.ExpiredStockException;
-import com.healthcare.clinic.pharmacy.exception.InsufficientStockException;
-import com.healthcare.clinic.pharmacy.exception.InvalidReturnException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DataAccessException;
@@ -79,24 +76,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(ex.getMessage()));
-    }
-
-    @ExceptionHandler(InsufficientStockException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInsufficientStock(InsufficientStockException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
-    }
-
-    @ExceptionHandler(InvalidReturnException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInvalidReturn(InvalidReturnException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
-    }
-
-    @ExceptionHandler(ExpiredStockException.class)
-    public ResponseEntity<ApiResponse<Void>> handleExpiredStock(ExpiredStockException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 

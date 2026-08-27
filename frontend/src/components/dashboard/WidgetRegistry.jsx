@@ -10,7 +10,6 @@ import * as LabWidgets from './widgets/LabWidgets';
 import * as MarketingWidgets from './widgets/MarketingWidgets';
 import * as NurseWidgets from './widgets/NurseWidgets';
 import * as PatientWidgets from './widgets/PatientWidgets';
-import * as PharmacyWidgets from './widgets/PharmacyWidgets';
 import * as RadiologistWidgets from './widgets/RadiologistWidgets';
 import * as ReceptionWidgets from './widgets/ReceptionWidgets';
 import * as SupportWidgets from './widgets/SupportWidgets';
@@ -29,7 +28,6 @@ export const WidgetRegistry = {
   ...MarketingWidgets,
   ...NurseWidgets,
   ...PatientWidgets,
-  ...PharmacyWidgets,
   ...RadiologistWidgets,
   ...ReceptionWidgets,
   ...SupportWidgets,

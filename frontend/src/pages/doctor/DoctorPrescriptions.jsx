@@ -21,23 +21,38 @@ const DoctorPrescriptions = () => {
     enabled: !!user?.id
   });
 
-  const prescriptions = rawPrescriptions.map(rx => ({
-    id: `RX-${rx.id}`,
-    subId: `#${rx.id}`,
-    patient: { name: rx.patientName, details: `PID: ${rx.patientId}`, id: rx.patientId },
-    date: new Date(rx.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-    time: new Date(rx.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    diagnosis: rx.diagnosis || 'N/A',
-    medicines: `${rx.items?.length || 0} Medicines`,
-    status: rx.pharmacyStatus === 'DISPENSED' ? 'Dispensed' : (rx.pharmacyStatus === 'PENDING' ? 'Pending Pharmacy' : rx.status),
-    statusColor: rx.pharmacyStatus === 'DISPENSED' ? 'green' : (rx.pharmacyStatus === 'PENDING' ? 'blue' : 'gray'),
-    raw: rx
-  }));
+  const getFulfillmentInfo = (rx) => {
+    switch (rx.pharmacyStatus) {
+      case 'DISPENSED': return { status: 'Dispensed', color: 'green' };
+      case 'PROCESSING': return { status: 'Pharmacy Processing', color: 'blue' };
+      case 'ACCEPTED': return { status: 'Claimed by Pharmacy', color: 'blue' };
+      case 'PENDING': return { status: 'Pending Pharmacy', color: 'amber' };
+      case 'REJECTED': return { status: 'Rejected by Pharmacy', color: 'red' };
+      default: return { status: rx.status || 'Active', color: 'gray' };
+    }
+  };
+
+  const prescriptions = rawPrescriptions.map(rx => {
+    const info = getFulfillmentInfo(rx);
+    return {
+      id: `RX-${rx.id}`,
+      subId: `#${rx.id}`,
+      patient: { name: rx.patientName, details: `PID: ${rx.patientId}`, id: rx.patientId },
+      date: new Date(rx.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      time: new Date(rx.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      diagnosis: rx.diagnosis || 'N/A',
+      medicines: `${rx.items?.length || 0} Medicines`,
+      status: info.status,
+      statusColor: info.color,
+      raw: rx
+    };
+  });
 
   const getStatusBadgeClasses = (color) => {
     switch (color) {
       case 'green': return 'bg-[#F0FDF4] text-[#16A34A]';
       case 'blue': return 'bg-[#EFF6FF] text-[#2563EB]';
+      case 'amber': return 'bg-amber-50 text-amber-700 border border-amber-200';
       case 'red': return 'bg-[#FEF2F2] text-[#DC2626]';
       default: return 'bg-gray-100 text-gray-700';
     }

@@ -153,17 +153,5 @@ public class NotificationEventListener {
     @EventListener
     public void onPrescriptionCreated(PrescriptionCreatedEvent event) {
         log.info("Handling PrescriptionCreatedEvent for prescription {}", event.getPrescriptionId());
-        
-        if (event.getAssignedPharmacyUserId() != null) {
-            inApp.sendToUser(event.getAssignedPharmacyUserId(),
-                    "New Assigned Prescription",
-                    "A new prescription has been assigned to you by Doctor.",
-                    "PRESCRIPTION", event.getPrescriptionId());
-        } else {
-            inApp.sendToRole("ROLE_PHARMACIST",
-                    "New Pending Prescription",
-                    "A new unassigned prescription is pending review.",
-                    "PRESCRIPTION", event.getPrescriptionId());
-        }
     }
 }

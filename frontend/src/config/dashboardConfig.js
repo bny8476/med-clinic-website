@@ -106,34 +106,6 @@ dashboardConfig.ROLE_RECEPTION = {
   }
 };
 
-// Add Pharmacy widgets to WIDGETS
-WIDGETS.PHARMACY_KPI = 'PHARMACY_KPI';
-WIDGETS.PHARMACY_SALES_TREND = 'PHARMACY_SALES_TREND';
-WIDGETS.PHARMACY_REVENUE_SUMMARY = 'PHARMACY_REVENUE_SUMMARY';
-WIDGETS.PHARMACY_RECENT_BILLS = 'PHARMACY_RECENT_BILLS';
-WIDGETS.PHARMACY_LOW_STOCK = 'PHARMACY_LOW_STOCK';
-
-// Add Pharmacy to config
-dashboardConfig.ROLE_PHARMACIST = {
-  quickActions: [
-    { label: 'New Sale', icon: Pill, color: 'text-emerald-500', bg: 'bg-emerald-500/10', actionPath: '/pharmacy/pos' },
-    { label: 'Add Stock', icon: Activity, color: 'text-blue-500', bg: 'bg-blue-500/10', actionPath: '/pharmacy/inventory/new' }
-  ],
-  tabs: ['Overview', 'Sales', 'Inventory', 'Reports'],
-  layout: {
-    top: [WIDGETS.PHARMACY_KPI],
-    left: [WIDGETS.PHARMACY_SALES_TREND],
-    right: [WIDGETS.PHARMACY_REVENUE_SUMMARY],
-    bottom: {
-      recentActivities: false,
-      aiAssistant: false,
-      quickSearch: false,
-      pharmacyRecentBills: [WIDGETS.PHARMACY_RECENT_BILLS],
-      pharmacyLowStock: [WIDGETS.PHARMACY_LOW_STOCK]
-    }
-  }
-};
-
 // Add Patient widgets to WIDGETS
 WIDGETS.PATIENT_HEADER = 'PATIENT_HEADER';
 WIDGETS.PATIENT_KPI = 'PATIENT_KPI';

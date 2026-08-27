@@ -34,7 +34,7 @@ public class FlywayConfig {
 
         Flyway flyway = Flyway.configure()
                 .dataSource(clinicDataSource)
-                .locations("classpath:db/migration/clinic", "classpath:db/migration/pharmacy")
+                .locations("classpath:db/migration/clinic")
                 .table("clinic_flyway_schema_history_v2")
                 .baselineOnMigrate(baselineOnMigrate)
                 .baselineVersion(baselineVersion)

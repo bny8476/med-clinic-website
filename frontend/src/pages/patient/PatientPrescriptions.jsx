@@ -81,8 +81,6 @@ const PatientPrescriptions = () => {
       (p.items && p.items.some(i => i.medicationName.toLowerCase().includes(searchQuery.toLowerCase())));
 
     if (!matchesSearch) return false;
-    if (activeFilter === 'DISPENSED') return p.pharmacyStatus === 'DISPENSED';
-    if (activeFilter === 'PENDING') return p.pharmacyStatus !== 'DISPENSED';
     if (activeFilter === 'REFILLABLE') return p.refillsRemaining > 0;
     return true;
   });
@@ -112,7 +110,7 @@ const PatientPrescriptions = () => {
             </span>
           </h1>
           <p className="text-slate-500 text-sm font-medium mt-1">
-            View prescriptions sent to you by your doctor, track pharmacy status, and request refills online.
+            View active prescriptions issued by your doctor and request refills online.
           </p>
         </div>
 
@@ -136,8 +134,6 @@ const PatientPrescriptions = () => {
         <div className="flex items-center gap-2 bg-slate-200/60 p-1.5 rounded-2xl">
           {[
             { id: 'ALL', label: 'All Prescriptions' },
-            { id: 'DISPENSED', label: 'Dispensed' },
-            { id: 'PENDING', label: 'Pending Pharmacy' },
             { id: 'REFILLABLE', label: 'Refill Eligible' }
           ].map(tab => (
             <button
@@ -220,24 +216,35 @@ const PatientPrescriptions = () => {
                 </div>
 
                 {/* Status Badges */}
-                <div className="flex items-center gap-3 self-start sm:self-auto">
-                  <span className={`px-4 py-1.5 rounded-full text-xs font-black tracking-wide flex items-center gap-1.5 ${
-                    prescription.pharmacyStatus === 'DISPENSED'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-amber-50 text-amber-700 border border-amber-200'
-                  }`}>
-                    {prescription.pharmacyStatus === 'DISPENSED' ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        Dispensed
-                      </>
-                    ) : (
-                      <>
-                        <Clock className="w-4 h-4 text-amber-600" />
-                        Pending Pharmacy
-                      </>
-                    )}
+                <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+                  <span className="px-3.5 py-1.5 rounded-full text-xs font-black tracking-wide flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    Active Prescription
                   </span>
+                  {prescription.pharmacyStatus === 'DISPENSED' && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-teal-50 text-teal-800 border border-teal-200">
+                      <Pill className="w-3.5 h-3.5 text-teal-600" />
+                      Dispensed by Pharmacy
+                    </span>
+                  )}
+                  {(prescription.pharmacyStatus === 'ACCEPTED' || prescription.pharmacyStatus === 'PROCESSING') && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-blue-50 text-blue-800 border border-blue-200 animate-pulse">
+                      <Clock className="w-3.5 h-3.5 text-blue-600" />
+                      Pharmacy Processing Order
+                    </span>
+                  )}
+                  {prescription.pharmacyStatus === 'PENDING' && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">
+                      <Clock className="w-3.5 h-3.5 text-amber-600" />
+                      Sent to Pharmacy Queue
+                    </span>
+                  )}
+                  {prescription.pharmacyStatus === 'REJECTED' && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 bg-rose-50 text-rose-800 border border-rose-200">
+                      <X className="w-3.5 h-3.5 text-rose-600" />
+                      Rejected by Pharmacy
+                    </span>
+                  )}
                 </div>
               </div>
 

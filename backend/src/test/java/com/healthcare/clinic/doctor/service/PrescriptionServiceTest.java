@@ -42,9 +42,6 @@ class PrescriptionServiceTest {
     private com.healthcare.clinic.doctor.repository.PrescriptionRepository prescriptionRepository;
 
     @Mock
-    private com.healthcare.clinic.pharmacy.repository.PrescriptionRepository pharmacyPrescriptionRepository;
-
-    @Mock
     private UserRepository userRepository;
 
     @Mock
@@ -136,7 +133,6 @@ class PrescriptionServiceTest {
 
         assertEquals("Cannot void prescription after 15 minutes", exception.getMessage());
         verify(prescriptionRepository, never()).save(any());
-        verify(pharmacyPrescriptionRepository, never()).save(any());
     }
 
     @Test

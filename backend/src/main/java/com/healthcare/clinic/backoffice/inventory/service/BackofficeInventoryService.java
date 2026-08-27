@@ -17,7 +17,6 @@ public class BackofficeInventoryService {
     private final BackofficeSupplierRepository supplierRepository;
     private final BackofficePurchaseOrderRepository purchaseOrderRepository;
     private final StockTransferRepository stockTransferRepository;
-    private final com.healthcare.clinic.pharmacy.repository.MedicineBatchRepository medicineBatchRepository;
 
     @Transactional(readOnly = true)
     public List<Warehouse> getAllWarehouses() {
@@ -31,15 +30,7 @@ public class BackofficeInventoryService {
 
     @Transactional(readOnly = true)
     public List<StockItem> getAllStockItems() {
-        List<StockItem> items = stockItemRepository.findAll();
-        // Sync live quantity from MedicineBatch for MEDICINE type stock items
-        items.forEach(item -> {
-            if ("MEDICINE".equals(item.getItemType()) && item.getMedicineBatchId() != null) {
-                medicineBatchRepository.findById(item.getMedicineBatchId())
-                        .ifPresent(batch -> item.setQuantity(batch.getQuantity()));
-            }
-        });
-        return items;
+        return stockItemRepository.findAll();
     }
 
     @Transactional

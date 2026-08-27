@@ -14,6 +14,25 @@
 export const PORTAL_CONFIGS = [
   // ── 3. Doctor ─────────────────────────────────────────────────────────────
   {
+    slug: 'pharmacist',
+    displayName: 'Pharmacist',
+    role: 'ROLE_PHARMACIST',
+    themeColor: '#0d9488',
+    dashboardRoute: '/pharmacist/dashboard',
+    authConfig: {
+      heroTitle: 'Pharmacist Fulfillment Access.',
+      heroSubtitle: 'Review incoming prescriptions, verify drug safety, and process prescription fulfillment.',
+      sideBadge: 'PHARMACY FULFILLMENT',
+      sideQuoteTitle: 'Precision dispensing.',
+      sideQuoteText: 'Real-time prescription inbox and seamless fulfillment.',
+      allowRegister: false,
+    },
+    dashboardTiles: [
+      { label: 'Prescription Inbox', path: '/pharmacist/dashboard', icon: 'Pill', description: 'Review and dispense prescriptions' },
+    ],
+  },
+
+  {
     slug: 'doctor',
     displayName: 'Doctor',
     role: 'ROLE_DOCTOR',
@@ -127,31 +146,6 @@ export const PORTAL_CONFIGS = [
       { label: 'Patient Monitoring', path: '/nurse/monitoring',  icon: 'Activity', description: 'Manage and view patient monitoring' },
       { label: 'Ward Management', path: '/nurse/wards',       icon: 'BedDouble', description: 'Manage and view ward management' },
       { label: 'Task Management', path: '/nurse/tasks',       icon: 'CheckSquare', description: 'Manage and view task management' },
-    ],
-  },
-
-  // ── 7b. Pharmacy (Full Module) ──────────────────────────────────────────────
-  {
-    slug: 'pharmacy',
-    displayName: 'Pharmacy System',
-    role: 'ROLE_PHARMACIST',
-    themeColor: '#065f46', // Dark emerald
-    dashboardRoute: '/pharmacy/dashboard',
-    authConfig: {
-      heroTitle: 'Comprehensive Pharmacy Management.',
-      heroSubtitle: 'Inventory control, billing, prescription verification, and complete medical stock administration.',
-      sideBadge: 'PHARMACY CORE',
-      sideQuoteTitle: 'Precision in inventory and dispensing.',
-      sideQuoteText: 'Manage stock alerts, multi-branch transfers, expiration trackers, and retail billing from a unified command center.',
-      allowRegister: false,
-    },
-    dashboardTiles: [
-      { label: 'Dashboard', path: '/pharmacy/dashboard', icon: 'LayoutDashboard', description: 'View dashboard metrics' },
-      { label: 'Billing', path: '/pharmacy/billing-dashboard', icon: 'Receipt', description: 'Manage billing' },
-      { label: 'Inventory', path: '/pharmacy/medicine-stock', icon: 'Package', description: 'Manage stock' },
-      { label: 'Prescriptions', path: '/pharmacy/pending-prescriptions', icon: 'ClipboardList', description: 'Verify prescriptions' },
-      { label: 'Purchase Orders', path: '/pharmacy/purchase-orders', icon: 'FileText', description: 'Manage procurement' },
-      { label: 'Reports', path: '/pharmacy/analytics/analytics-dashboard', icon: 'BarChart2', description: 'View analytics' },
     ],
   },
 
@@ -496,24 +490,6 @@ export const PORTAL_CONFIGS = [
       { label: 'IPD', path: '/analytics/ipd', icon: 'Bed', description: 'IPD Reports' },
       { label: 'Lab', path: '/analytics/lab', icon: 'FlaskConical', description: 'Lab Reports' },
       { label: 'OPD', path: '/analytics/opd', icon: 'Users', description: 'OPD Reports' },
-    ],
-  },
-  {
-    slug: 'pharmacist',
-    displayName: 'Pharmacist',
-    role: 'ROLE_PHARMACIST',
-    themeColor: '#14B8A6',
-    dashboardRoute: '/pharmacist/dashboard',
-    authConfig: {
-      heroTitle: 'Pharmacy Portal.',
-      heroSubtitle: 'Manage prescriptions and inventory.',
-      sideBadge: 'PHARMACY SECURE',
-      sideQuoteTitle: 'Reliable dispensing.',
-      sideQuoteText: 'Streamlined tools for pharmacy operations.',
-      allowRegister: false,
-    },
-    dashboardTiles: [
-      { label: 'Dashboard', path: '/pharmacist/dashboard', icon: 'LayoutDashboard', description: 'Pharmacy Overview' },
     ],
   },
   {
