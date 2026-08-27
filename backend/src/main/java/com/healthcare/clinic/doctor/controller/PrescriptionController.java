@@ -32,6 +32,13 @@ public class PrescriptionController {
         return ResponseEntity.ok(prescriptionService.getPrescriptionsForPatient(patientId));
     }
 
+    @GetMapping("/doctor/me")
+    @PreAuthorize("hasAuthority('ROLE_DOCTOR') or hasAuthority('ROLE_ADMIN') or hasAuthority('ROLE_SUPER_ADMIN')")
+    public ResponseEntity<List<PrescriptionResponse>> getDoctorPrescriptions() {
+        Long doctorId = com.healthcare.clinic.security.SecurityUtils.getCurrentUserId();
+        return ResponseEntity.ok(prescriptionService.getPrescriptionsForDoctor(doctorId));
+    }
+
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('ROLE_PATIENT') or hasAuthority('ROLE_DOCTOR') or hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<PrescriptionResponse> getPrescription(@PathVariable Long id) {

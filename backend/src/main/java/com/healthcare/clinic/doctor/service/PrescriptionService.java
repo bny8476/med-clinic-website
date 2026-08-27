@@ -63,6 +63,14 @@ public class PrescriptionService {
     }
 
     @Transactional(readOnly = true)
+    public List<PrescriptionResponse> getPrescriptionsForDoctor(Long doctorId) {
+        return prescriptionRepository.findByDoctorIdOrderByCreatedAtDesc(doctorId)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public List<Prescription> getPrescriptionsByEncounter(Long encounterId) {
         return prescriptionRepository.findByEncounterId(encounterId);
     }
