@@ -45,10 +45,7 @@ public class DashboardService {
                 .collect(Collectors.groupingBy(c -> c.getStatus().name(), Collectors.counting()));
 
         // Pending Expenses
-        List<Expense> expenses = expenseRepository.findAll();
-        long pendingApprovals = expenses.stream()
-                .filter(e -> e.getStatus() == ExpenseStatus.PENDING_APPROVAL)
-                .count();
+        long pendingApprovals = expenseRepository.countByStatus(ExpenseStatus.PENDING_APPROVAL);
 
         // Budget Status (current month if not specified, else simple approach uses all for now)
         List<BranchBudget> budgets = budgetRepository.findAll();

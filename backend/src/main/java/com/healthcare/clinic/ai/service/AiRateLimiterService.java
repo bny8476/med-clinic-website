@@ -1,5 +1,7 @@
 package com.healthcare.clinic.ai.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.healthcare.clinic.ai.config.GroqConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +11,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -19,8 +20,11 @@ public class AiRateLimiterService {
 
     private final GroqConfig groqConfig;
 
-    // In-memory sliding window timestamps: key -> list of timestamp Epoch Seconds
-    private final Map<String, List<Long>> requestHistory = new ConcurrentHashMap<>();
+    // Bounded Caffeine cache for rate limiting to prevent unbounded memory growth: key -> list of timestamp Epoch Seconds
+    private final Cache<String, List<Long>> requestHistoryCache = Caffeine.newBuilder()
+            .maximumSize(1000)
+            .expireAfterAccess(1, TimeUnit.HOURS)
+            .build();
 
     public boolean isAllowed(Long userId, String clientIp) {
         String key;
@@ -37,7 +41,7 @@ public class AiRateLimiterService {
         long now = Instant.now().getEpochSecond();
         long windowStart = now - ChronoUnit.HOURS.getDuration().getSeconds();
 
-        List<Long> timestamps = requestHistory.computeIfAbsent(key, k -> new ArrayList<>());
+        List<Long> timestamps = requestHistoryCache.get(key, k -> new ArrayList<>());
 
         synchronized (timestamps) {
             // Remove timestamps older than 1 hour

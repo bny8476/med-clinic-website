@@ -2,6 +2,8 @@ package com.healthcare.clinic.doctor.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.healthcare.clinic.doctor.dto.ExternalMedicineDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,13 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ExternalMedicineSearchService {
@@ -25,9 +26,11 @@ public class ExternalMedicineSearchService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
-    // Simple in-memory cache to reduce redundant calls to external API (3 hours TTL)
-    private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
-    private static final long CACHE_TTL_SECONDS = 3600 * 3;
+    // Bounded Caffeine cache (500 max entries, 3 hours TTL) to prevent heap accumulation
+    private final Cache<String, List<ExternalMedicineDto>> cache = Caffeine.newBuilder()
+            .maximumSize(500)
+            .expireAfterWrite(3, TimeUnit.HOURS)
+            .build();
 
     public ExternalMedicineSearchService() {
         this.restTemplate = new RestTemplate();
@@ -41,17 +44,7 @@ public class ExternalMedicineSearchService {
 
         String key = name.trim().toLowerCase();
 
-        // Check cache
-        CacheEntry cached = cache.get(key);
-        if (cached != null && (Instant.now().getEpochSecond() - cached.timestamp < CACHE_TTL_SECONDS)) {
-            return cached.results;
-        }
-
-        List<ExternalMedicineDto> results = fetchFromRxNorm(key);
-
-        // Save to cache
-        cache.put(key, new CacheEntry(results, Instant.now().getEpochSecond()));
-        return results;
+        return cache.get(key, k -> fetchFromRxNorm(k));
     }
 
     private List<ExternalMedicineDto> fetchFromRxNorm(String term) {
@@ -85,7 +78,6 @@ public class ExternalMedicineSearchService {
 
             if (rxcui != null && candidateName != null && !candidateName.trim().isEmpty()) {
                 String lowercaseName = candidateName.toLowerCase();
-                // Deduplicate by lowercase name, keeping the first (highest rank)
                 deduped.putIfAbsent(lowercaseName, ExternalMedicineDto.builder()
                         .name(candidateName)
                         .rxcui(rxcui)
@@ -94,15 +86,5 @@ public class ExternalMedicineSearchService {
         }
 
         return new ArrayList<>(deduped.values());
-    }
-
-    private static class CacheEntry {
-        List<ExternalMedicineDto> results;
-        long timestamp;
-
-        CacheEntry(List<ExternalMedicineDto> results, long timestamp) {
-            this.results = results;
-            this.timestamp = timestamp;
-        }
     }
 }

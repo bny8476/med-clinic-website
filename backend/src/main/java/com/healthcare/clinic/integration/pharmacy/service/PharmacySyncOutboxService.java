@@ -8,7 +8,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -24,9 +23,7 @@ public class PharmacySyncOutboxService {
      */
     @Scheduled(cron = "0 */2 * * * *")
     public void retryPendingPharmacySync() {
-        List<Prescription> pendingSync = prescriptionRepository.findAll().stream()
-                .filter(p -> "RETRY_PENDING".equalsIgnoreCase(p.getPharmacyStatus()))
-                .collect(Collectors.toList());
+        List<Prescription> pendingSync = prescriptionRepository.findByPharmacyStatus("RETRY_PENDING");
 
         if (pendingSync.isEmpty()) {
             return;

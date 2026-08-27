@@ -18,6 +18,8 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, Long
     List<Prescription> findByEncounterId(Long encounterId);
     List<Prescription> findByPharmacyStatusInOrderByCreatedAtDesc(List<String> pharmacyStatuses);
     List<Prescription> findByPharmacyStatusOrderByCreatedAtDesc(String pharmacyStatus);
+    List<Prescription> findByPharmacyStatus(String pharmacyStatus);
+    java.util.Optional<Prescription> findByPharmacyReferenceId(String pharmacyReferenceId);
     long countByStatus(String status);
 
     @Modifying

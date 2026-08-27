@@ -4,50 +4,70 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Slf4j
 public class LocalMockStorageServiceImpl implements DocumentStorageService {
 
-    // Using an in-memory map to simulate file storage since local disk won't survive Render redeploys.
-    // In a real production system, this class would be replaced by S3StorageServiceImpl.
-    private final ConcurrentHashMap<String, byte[]> mockStorage = new ConcurrentHashMap<>();
+    private final Path tempStorageDir;
+
+    public LocalMockStorageServiceImpl() {
+        String baseDir = System.getProperty("java.io.tmpdir");
+        this.tempStorageDir = Path.of(baseDir, "clinic-temp-uploads");
+        try {
+            Files.createDirectories(this.tempStorageDir);
+            log.info("Initialized local disk temp storage directory at: {}", this.tempStorageDir.toAbsolutePath());
+        } catch (IOException e) {
+            log.error("Failed to create local temp storage directory", e);
+        }
+    }
 
     @Override
     public String uploadFile(MultipartFile file) {
-        String storageKey = UUID.randomUUID().toString() + "-" + file.getOriginalFilename();
-        try {
-            mockStorage.put(storageKey, file.getBytes());
-            log.info("Mock upload: saved file {} with key {}", file.getOriginalFilename(), storageKey);
+        String safeName = file.getOriginalFilename() != null ? file.getOriginalFilename().replaceAll("[^a-zA-Z0-9._-]", "_") : "file";
+        String storageKey = UUID.randomUUID().toString() + "-" + safeName;
+        Path targetPath = tempStorageDir.resolve(storageKey);
+        try (InputStream inputStream = file.getInputStream()) {
+            Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
+            log.info("Saved upload to disk: {} (size: {} bytes)", targetPath.toAbsolutePath(), file.getSize());
             return storageKey;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read multipart file", e);
+            throw new RuntimeException("Failed to save uploaded file to local disk storage", e);
         }
     }
 
     @Override
     public InputStream downloadFile(String storageKey) {
-        byte[] data = mockStorage.get(storageKey);
-        if (data == null) {
-            throw new RuntimeException("File not found in mock storage: " + storageKey);
+        Path targetPath = tempStorageDir.resolve(storageKey);
+        if (!Files.exists(targetPath)) {
+            throw new RuntimeException("File not found in local disk storage: " + storageKey);
         }
-        return new ByteArrayInputStream(data);
+        try {
+            return Files.newInputStream(targetPath);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to open input stream for file: " + storageKey, e);
+        }
     }
 
     @Override
     public String generateDownloadUrl(String storageKey) {
-        // Mock implementation just returns a local API route that would fetch the file
         return "/api/documents/download/" + storageKey;
     }
 
     @Override
     public void deleteFile(String storageKey) {
-        mockStorage.remove(storageKey);
-        log.info("Mock delete: removed file with key {}", storageKey);
+        Path targetPath = tempStorageDir.resolve(storageKey);
+        try {
+            boolean deleted = Files.deleteIfExists(targetPath);
+            log.info("Disk delete file key {}: deleted={}", storageKey, deleted);
+        } catch (IOException e) {
+            log.warn("Failed to delete file from disk storage: {}", storageKey, e);
+        }
     }
 }

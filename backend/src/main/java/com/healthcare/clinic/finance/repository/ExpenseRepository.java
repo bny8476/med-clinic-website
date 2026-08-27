@@ -11,4 +11,5 @@ import java.util.List;
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findByIncurredOnBetween(LocalDate startDate, LocalDate endDate);
     List<Expense> findAllByOrderByIncurredOnDesc();
+    long countByStatus(com.healthcare.clinic.finance.entity.ExpenseStatus status);
 }

@@ -2,7 +2,6 @@ package com.healthcare.clinic.integration.pharmacy.service;
 
 import com.healthcare.clinic.doctor.dto.ExternalMedicineDto;
 import com.healthcare.clinic.doctor.entity.Prescription;
-import com.healthcare.clinic.doctor.entity.PrescriptionItem;
 import com.healthcare.clinic.doctor.repository.PrescriptionRepository;
 import com.healthcare.clinic.doctor.service.ExternalMedicineSearchService;
 import com.healthcare.clinic.identity.entity.User;
@@ -147,9 +146,7 @@ public class PharmacyIntegrationService {
             rx = prescriptionRepository.findById(webhook.getClinicPrescriptionId()).orElse(null);
         }
         if (rx == null && webhook.getPharmacyReferenceId() != null) {
-            rx = prescriptionRepository.findAll().stream()
-                    .filter(p -> webhook.getPharmacyReferenceId().equals(p.getPharmacyReferenceId()))
-                    .findFirst().orElse(null);
+            rx = prescriptionRepository.findByPharmacyReferenceId(webhook.getPharmacyReferenceId()).orElse(null);
         }
 
         if (rx == null) {
