@@ -52,6 +52,20 @@ export function isTokenValid(token) {
   }
 }
 
+const extractErrorMessage = (err, fallback) => {
+  if (err.response?.data) {
+    if (typeof err.response.data === 'string') return err.response.data;
+    if (err.response.data.message) return err.response.data.message;
+  }
+  if (err.code === 'ECONNABORTED') {
+    return 'Server cold start timed out. The backend is waking up, please try again in a moment.';
+  }
+  if (err.message === 'Network Error' || !err.response) {
+    return 'Server unreachable. Please check backend status or CORS configuration.';
+  }
+  return fallback;
+};
+
 const useAuthStore = create(
     persist(
         (set) => ({
@@ -86,7 +100,7 @@ const useAuthStore = create(
                     });
                     return true;
                 } catch (err) {
-                    set({ error: err.response?.data || 'Login failed', isLoading: false });
+                    set({ error: extractErrorMessage(err, 'Login failed. Please check credentials.'), isLoading: false });
                     return false;
                 }
             },
@@ -109,7 +123,7 @@ const useAuthStore = create(
                     });
                     return true;
                 } catch (err) {
-                    set({ error: err.response?.data || 'Invalid OTP', isLoading: false });
+                    set({ error: extractErrorMessage(err, 'Invalid OTP or expired code'), isLoading: false });
                     return false;
                 }
             },
@@ -137,7 +151,7 @@ const useAuthStore = create(
                     set({ isLoading: false });
                     return true;
                 } catch (err) {
-                    set({ error: err.response?.data || 'Failed to send reset code', isLoading: false });
+                    set({ error: extractErrorMessage(err, 'Failed to send reset code'), isLoading: false });
                     return false;
                 }
             },
