@@ -3,7 +3,6 @@ package com.healthcare.clinic.identity.service;
 import com.healthcare.clinic.identity.entity.OtpCode;
 import com.healthcare.clinic.identity.entity.User;
 import com.healthcare.clinic.identity.repository.OtpCodeRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,7 +14,6 @@ import java.time.ZonedDateTime;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class OtpService {
 
     private static final int OTP_EXPIRY_MINUTES = 10;
@@ -27,6 +25,12 @@ public class OtpService {
 
     private final OtpCodeRepository otpCodeRepository;
     private final JavaMailSender mailSender;
+
+    public OtpService(OtpCodeRepository otpCodeRepository,
+                      @org.springframework.beans.factory.annotation.Autowired(required = false) JavaMailSender mailSender) {
+        this.otpCodeRepository = otpCodeRepository;
+        this.mailSender = mailSender;
+    }
 
     @Transactional
     public void generateAndSendOtp(User user) {
@@ -47,6 +51,11 @@ public class OtpService {
         otpCode.setCode(code);
         otpCode.setExpiryDate(ZonedDateTime.now().plusMinutes(OTP_EXPIRY_MINUTES));
         otpCodeRepository.save(otpCode);
+
+        if (mailSender == null) {
+            log.warn("JavaMailSender is not configured. Skipping OTP mail delivery for user id={}", user.getId());
+            return;
+        }
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(user.getEmail());

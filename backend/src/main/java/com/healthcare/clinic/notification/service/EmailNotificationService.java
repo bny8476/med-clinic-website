@@ -5,7 +5,6 @@ import com.healthcare.clinic.notification.event.AppointmentCancelledEvent;
 import com.healthcare.clinic.notification.event.InvoiceCreatedEvent;
 import com.healthcare.clinic.notification.event.LabResultReleasedEvent;
 import com.healthcare.clinic.notification.event.QueueTokenCalledEvent;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,13 +16,16 @@ import jakarta.mail.internet.MimeMessage;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class EmailNotificationService {
 
     private final JavaMailSender emailSender;
 
     @Value("${spring.mail.username:noreply@healthcareclinic.com}")
     private String defaultFromEmail;
+
+    public EmailNotificationService(@org.springframework.beans.factory.annotation.Autowired(required = false) JavaMailSender emailSender) {
+        this.emailSender = emailSender;
+    }
 
     // ─── Appointment ──────────────────────────────────────────────────────────
 
@@ -99,6 +101,10 @@ public class EmailNotificationService {
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     private void sendHtmlEmail(String to, String subject, String htmlBody) {
+        if (emailSender == null) {
+            log.warn("JavaMailSender is not configured. Skipping HTML email dispatch to {}: {}", to, subject);
+            return;
+        }
         try {
             MimeMessage message = emailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
