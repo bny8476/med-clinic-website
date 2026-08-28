@@ -81,17 +81,33 @@ public class ClinicDatabaseConfig {
             driver = environment.getProperty("SPRING_DATASOURCE_CLINIC_DRIVER_CLASS_NAME");
         }
 
-        boolean isH2Fallback = url == null || url.trim().isEmpty() || url.contains("jdbc:h2");
+        boolean useH2 = url == null || url.trim().isEmpty() || url.contains("jdbc:h2");
 
-        if (isH2Fallback) {
-            url = "jdbc:h2:mem:clinicdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE";
-            driver = "org.h2.Driver"; // Force driver to match URL
-        } else {
+        if (!useH2) {
             driver = (driver != null && !driver.trim().isEmpty()) ? driver : (url.startsWith("jdbc:postgresql") ? "org.postgresql.Driver" : (url.startsWith("jdbc:tc:postgresql") ? "org.testcontainers.jdbc.ContainerDatabaseDriver" : "org.postgresql.Driver"));
+            username = (username != null && !username.trim().isEmpty()) ? username : "postgres";
+            password = (password != null) ? password : "";
+
+            try {
+                if (driver != null && !driver.isBlank()) {
+                    Class.forName(driver);
+                }
+                java.sql.DriverManager.setLoginTimeout(5);
+                try (java.sql.Connection conn = java.sql.DriverManager.getConnection(url, username, password)) {
+                    System.out.println("[Clinic DB] Primary DB connection test succeeded: " + url);
+                }
+            } catch (Exception e) {
+                System.err.println("[Clinic DB] Primary DB connection failed (" + e.getMessage() + "). Falling back to H2 in-memory database.");
+                useH2 = true;
+            }
         }
 
-        username = (username != null && !username.trim().isEmpty()) ? username : "sa";
-        password = (password != null) ? password : "";
+        if (useH2) {
+            url = "jdbc:h2:mem:clinicdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE";
+            driver = "org.h2.Driver";
+            username = "sa";
+            password = "";
+        }
 
         com.zaxxer.hikari.HikariDataSource dataSource = new com.zaxxer.hikari.HikariDataSource();
         dataSource.setJdbcUrl(url);
@@ -105,21 +121,6 @@ public class ClinicDatabaseConfig {
         dataSource.setConnectionTimeout(environment.getProperty("app.datasource.clinic.connection-timeout", Long.class, 30000L));
         dataSource.setIdleTimeout(environment.getProperty("app.datasource.clinic.idle-timeout", Long.class, 600000L));
         dataSource.setMaxLifetime(environment.getProperty("app.datasource.clinic.max-lifetime", Long.class, 1800000L));
-
-        try (java.sql.Connection testConn = dataSource.getConnection()) {
-            System.out.println("[Clinic DB] Test connection succeeded: "
-                + testConn.getMetaData().getURL());
-        } catch (java.sql.SQLException e) {
-            System.err.println("[Clinic DB] Primary DB connection failed (" + e.getMessage() + "). Falling back to H2 in-memory database.");
-            url = "jdbc:h2:mem:clinicdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE";
-            driver = "org.h2.Driver";
-            username = "sa";
-            password = "";
-            dataSource.setJdbcUrl(url);
-            dataSource.setDriverClassName(driver);
-            dataSource.setUsername(username);
-            dataSource.setPassword(password);
-        }
 
         System.out.println("Configured Clinic DataSource URL: " + url);
         return dataSource;
