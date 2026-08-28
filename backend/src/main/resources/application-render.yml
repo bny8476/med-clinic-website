@@ -20,6 +20,9 @@ app:
       maximum-pool-size: 5
 
 server:
+  port: ${PORT:8080}
+  address: 0.0.0.0
+  forward-headers-strategy: NATIVE
   tomcat:
     threads:
       max: 25
