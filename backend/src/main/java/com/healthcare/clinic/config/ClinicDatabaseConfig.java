@@ -180,11 +180,15 @@ public class ClinicDatabaseConfig {
         em.setJpaVendorAdapter(new org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter());
         
         java.util.HashMap<String, Object> properties = new java.util.HashMap<>();
+        String dbUrl = env.getProperty("app.datasource.clinic.url", "");
+        if (dbUrl.contains("h2")) {
+            properties.put("hibernate.dialect", "org.hibernate.dialect.H2Dialect");
+        } else {
+            properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
+        }
         String ddlAuto = env.getProperty("spring.jpa.hibernate.ddl-auto", "validate");
         properties.put("hibernate.hbm2ddl.auto", ddlAuto);
         properties.put("hibernate.physical_naming_strategy", "org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy");
-        properties.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
-        properties.put("hibernate.boot.allow_jdbc_metadata_access", "false");
         properties.put("hibernate.bytecode.use_reflection_optimizer", "true");
         em.setJpaPropertyMap(properties);
         
