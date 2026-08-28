@@ -3,8 +3,6 @@ package com.healthcare.clinic.billing.entity;
 import com.healthcare.clinic.branch.entity.Branch;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
-import org.hibernate.annotations.ParamDef;
 import com.healthcare.clinic.tenant.entity.Tenant;
 
 import lombok.AllArgsConstructor;
@@ -19,7 +17,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@FilterDef(name = "tenantFilter", parameters = @ParamDef(name = "tenantId", type = Long.class))
 @Filter(name = "tenantFilter", condition = "tenant_id = :tenantId")
 @Entity
 @Table(name = "invoices")

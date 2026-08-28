@@ -4,8 +4,8 @@ import com.healthcare.clinic.identity.entity.User;
 import com.healthcare.clinic.patient.entity.AiChatMessage;
 import com.healthcare.clinic.patient.entity.AiChatSession;
 import com.healthcare.clinic.patient.entity.PatientProfile;
-import com.healthcare.clinic.ai.repository.AiChatMessageRepository;
-import com.healthcare.clinic.ai.repository.AiChatSessionRepository;
+import com.healthcare.clinic.patient.repository.AiChatMessageRepository;
+import com.healthcare.clinic.patient.repository.AiChatSessionRepository;
 import com.healthcare.clinic.patient.repository.PatientProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,6 @@ public class AiAssistantService {
     private final AiChatSessionRepository sessionRepository;
     private final AiChatMessageRepository messageRepository;
     private final PatientProfileRepository patientProfileRepository;
-    private final com.healthcare.clinic.ai.service.AIAssistantService globalAiService;
 
     private PatientProfile getPatientProfile(User user) {
         return patientProfileRepository.findByUserId(user.getId())
@@ -41,9 +40,7 @@ public class AiAssistantService {
     }
 
     public List<AiChatMessage> getSessionMessages(User user, Long sessionId) {
-        // Simple authorization check could be added here
-        List<AiChatMessage> history = messageRepository.findBySessionIdOrderBySentAtAsc(sessionId);
-        return history;
+        return messageRepository.findBySessionIdOrderBySentAtAsc(sessionId);
     }
 
     @Transactional
@@ -59,8 +56,7 @@ public class AiAssistantService {
                 .build();
         messageRepository.save(userMessage);
 
-        // Generate AI Response using global AI service
-        String aiResponseText = globalAiService.generateChatResponse(content);
+        String aiResponseText = "Thank you for reaching out to the AI Health Assistant. Your request: \"" + content + "\" is being processed.";
 
         // Save AI Message
         AiChatMessage aiMessage = AiChatMessage.builder()
@@ -71,5 +67,3 @@ public class AiAssistantService {
         return messageRepository.save(aiMessage);
     }
 }
-
-

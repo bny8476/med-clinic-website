@@ -1,9 +1,0 @@
-target/
-.git/
-*.log
-run*.log
-cp.txt
-*.py
-.DS_Store
-.idea/
-.vscode/

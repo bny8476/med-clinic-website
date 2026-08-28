@@ -1,6 +1,5 @@
 package com.healthcare.clinic.exception;
 
-import com.healthcare.clinic.clinicaldecision.exception.CdsCriticalSafetyException;
 import com.healthcare.clinic.common.dto.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;

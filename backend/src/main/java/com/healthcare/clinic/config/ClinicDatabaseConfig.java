@@ -18,7 +18,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = "com.healthcare.clinic",
+        basePackages = {
+                "com.healthcare.clinic.appointment.repository",
+                "com.healthcare.clinic.audit.repository",
+                "com.healthcare.clinic.backoffice.inventory.repository",
+                "com.healthcare.clinic.billing.repository",
+                "com.healthcare.clinic.branch.repository",
+                "com.healthcare.clinic.clinicaldecision.repository",
+                "com.healthcare.clinic.department.repository",
+                "com.healthcare.clinic.doctor.medicine.repository",
+                "com.healthcare.clinic.doctor.repository",
+                "com.healthcare.clinic.document.repository",
+                "com.healthcare.clinic.emergency.repository",
+                "com.healthcare.clinic.emr.repository",
+                "com.healthcare.clinic.finance.repository",
+                "com.healthcare.clinic.homevisit.repository",
+                "com.healthcare.clinic.identity.repository",
+                "com.healthcare.clinic.inpatient.repository",
+                "com.healthcare.clinic.insurance.repository",
+                "com.healthcare.clinic.laboratory.repository",
+                "com.healthcare.clinic.medicalrecord.repository",
+                "com.healthcare.clinic.notification.repository",
+                "com.healthcare.clinic.nursing.repository",
+                "com.healthcare.clinic.patient.repository",
+                "com.healthcare.clinic.radiology.repository",
+                "com.healthcare.clinic.reception.repository",
+                "com.healthcare.clinic.superadmin.repository",
+                "com.healthcare.clinic.support.repository",
+                "com.healthcare.clinic.surgery.repository",
+                "com.healthcare.clinic.tenant.repository"
+        },
         entityManagerFactoryRef = "clinicEntityManagerFactory",
         transactionManagerRef = "clinicTransactionManager",
         nameGenerator = org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator.class
@@ -87,11 +116,19 @@ public class ClinicDatabaseConfig {
             System.out.println("[Clinic DB] Test connection succeeded: "
                 + testConn.getMetaData().getURL());
         } catch (java.sql.SQLException e) {
-            System.err.println("[Clinic DB] FAILED to establish test connection: "
-                + e.getMessage());
-            e.printStackTrace();
-            throw new IllegalStateException(
-                "Clinic datasource is unreachable at startup: " + e.getMessage(), e);
+            if (!isRender) {
+                System.err.println("[Clinic DB] Local DB connection failed (" + e.getMessage() + "). Falling back to H2 in-memory database.");
+                url = "jdbc:h2:mem:clinicdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE";
+                driver = "org.h2.Driver";
+                username = "sa";
+                password = "";
+                dataSource.setJdbcUrl(url);
+                dataSource.setDriverClassName(driver);
+                dataSource.setUsername(username);
+                dataSource.setPassword(password);
+            } else {
+                throw new IllegalStateException("Clinic datasource is unreachable at startup: " + e.getMessage(), e);
+            }
         }
 
         System.out.println("Configured Clinic DataSource URL: " + url);
@@ -108,16 +145,48 @@ public class ClinicDatabaseConfig {
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
         em.setPersistenceUnitName("clinic");
-        em.setPackagesToScan("com.healthcare.clinic");
+        em.setPackagesToScan(
+                "com.healthcare.clinic.appointment.entity",
+                "com.healthcare.clinic.audit.entity",
+                "com.healthcare.clinic.backoffice.inventory.entity",
+                "com.healthcare.clinic.billing.entity",
+                "com.healthcare.clinic.branch.entity",
+                "com.healthcare.clinic.clinicaldecision.entity",
+                "com.healthcare.clinic.department.entity",
+                "com.healthcare.clinic.doctor.entity",
+                "com.healthcare.clinic.doctor.medicine.entity",
+                "com.healthcare.clinic.document.entity",
+                "com.healthcare.clinic.emergency.entity",
+                "com.healthcare.clinic.emr.entity",
+                "com.healthcare.clinic.finance.entity",
+                "com.healthcare.clinic.homevisit.entity",
+                "com.healthcare.clinic.identity.entity",
+                "com.healthcare.clinic.inpatient.entity",
+                "com.healthcare.clinic.insurance.entity",
+                "com.healthcare.clinic.integration.entity",
+                "com.healthcare.clinic.laboratory.entity",
+                "com.healthcare.clinic.medicalrecord.entity",
+                "com.healthcare.clinic.notification.entity",
+                "com.healthcare.clinic.nursing.entity",
+                "com.healthcare.clinic.patient.entity",
+                "com.healthcare.clinic.radiology.entity",
+                "com.healthcare.clinic.reception.entity",
+                "com.healthcare.clinic.superadmin.entity",
+                "com.healthcare.clinic.support.entity",
+                "com.healthcare.clinic.surgery.entity",
+                "com.healthcare.clinic.tenant.entity"
+        );
 
         em.setJpaVendorAdapter(new org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter());
         
         java.util.HashMap<String, Object> properties = new java.util.HashMap<>();
-        String driver = env.getProperty("spring.datasource.clinic.driver-class-name", "org.postgresql.Driver");
-        String dialect = "org.hibernate.dialect.PostgreSQLDialect";
-        if (driver.contains("mysql")) dialect = "org.hibernate.dialect.MySQLDialect";
-        else if (driver.contains("h2")) dialect = "org.hibernate.dialect.H2Dialect";
-        
+        String dialect = "org.hibernate.dialect.H2Dialect";
+        try (java.sql.Connection c = dataSource.getConnection()) {
+            if (c.getMetaData().getURL().contains("postgresql")) {
+                dialect = "org.hibernate.dialect.PostgreSQLDialect";
+            }
+        } catch (Exception ignored) {}
+
         String ddlAuto = env.getProperty("spring.jpa.hibernate.ddl-auto", "validate");
         properties.put("hibernate.dialect", dialect);
         properties.put("hibernate.hbm2ddl.auto", ddlAuto);

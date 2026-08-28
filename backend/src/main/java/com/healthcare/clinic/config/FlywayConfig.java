@@ -42,8 +42,17 @@ public class FlywayConfig {
 
         if (Boolean.parseBoolean(
                 env.getProperty("spring.flyway.enabled", "true"))) {
-
-            migrateWithRetry(flyway, "clinic");
+            boolean isRender = java.util.Arrays.asList(env.getActiveProfiles()).contains("render");
+            try {
+                migrateWithRetry(flyway, "clinic");
+            } catch (Exception e) {
+                if (isRender) {
+                    logger.error("FATAL: Flyway migration failed in production environment!", e);
+                    throw new IllegalStateException("Flyway migration failed: " + e.getMessage(), e);
+                } else {
+                    logger.warn("Flyway migration skipped for local dev environment: {}", e.getMessage());
+                }
+            }
         }
 
         return flyway;

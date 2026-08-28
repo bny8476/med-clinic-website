@@ -1,6 +1,5 @@
 package com.healthcare.clinic.emergency.entity;
 
-import com.healthcare.clinic.ambulance.entity.EmergencyRequest;
 import com.healthcare.clinic.doctor.entity.DoctorProfile;
 import com.healthcare.clinic.inpatient.entity.Admission;
 import com.healthcare.clinic.patient.entity.PatientProfile;
@@ -32,9 +31,8 @@ public class EmergencyEncounter {
     @Column(name = "arrival_mode", nullable = false, length = 50)
     private String arrivalMode; // WALK_IN, AMBULANCE, POLICE, OTHER
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ambulance_request_id")
-    private EmergencyRequest ambulanceRequest; // From ambulance module
+    @Column(name = "ambulance_request_id")
+    private Long ambulanceRequestId;
 
     @CreatedDate
     @Column(name = "arrived_at", nullable = false, updatable = false)

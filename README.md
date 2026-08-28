@@ -1,125 +1,108 @@
-# Clinic Website
+# Main Clinic Website (Project 1) & Ancillary Services (Project 2)
 
-A monolithic clinic management platform with a Spring Boot backend and a React/Vite frontend.
+A modular healthcare management platform featuring a React/Vite frontend SPA and independent Spring Boot backend deployments.
 
-## Architecture
+---
+
+## System Overview & Architecture
+
+The application is structured into two independent service deployments:
+
+### Project 1 – Main Clinic Project (Primary Web & Backend)
+The core operational platform for clinic management.
+* **Frontend**: Complete React/Vite SPA (UI, components, pages, workflows intact).
+* **Backend Modules**:
+  * User Authentication & Authorization, Role-Based Access Control (RBAC)
+  * Admin & Super Admin Management
+  * Doctor Management
+  * Patient Management
+  * Appointment Booking & Scheduling
+  * Reception & Front Desk Management
+  * Nurse Management
+  * OP/IP Patient Workflow
+  * EMR & Electronic Medical Records
+  * Patient Medical History
+  * Prescription Management
+  * Pharmacy Management & Integration
+  * Laboratory Management
+  * Lab Test Requests & Reports
+  * HR & Employee Management
+  * Inpatient Management
+  * Surgery Management
+  * Radiology Management
+  * Notifications & Communication
+
+### Project 2 – Ancillary & Intelligence Services
+Specialized secondary microservices operating independently from core workflows:
+* AI Assistant & Clinical Guidance (`ai`)
+* Clinical Decision Support, Care Pathways & Order Sets (`clinicaldecision`)
+* FHIR Interoperability & Integration (`fhir`)
+* Emergency Services (`emergency`)
+* Finance & Billing (`finance`, `billing`)
+* Home Visits (`homevisit`)
+* Insurance Claims (`insurance`)
+* Search & Discovery (`search`)
+* Support & Ticketing (`support`)
+* Audit Logging (`audit`)
+
+---
+
+## Tech Stack
 
 | Layer | Technology |
-|-------|------------|
+|---|---|
 | Runtime | Java 21 |
-| Framework | **Spring Boot 4.1.0** |
-| Persistence | Spring Data JPA + Flyway migrations |
-| Auth | Spring Security — JWT (JJWT 0.11.5) |
-| Database | PostgreSQL (Clinic Module) & MySQL/TiDB (Pharmacy Module) |
+| Framework | Spring Boot 3.4.1 |
+| Persistence | Spring Data JPA + Flyway Migrations |
+| Security | Spring Security (JWT - JJWT 0.11.5) |
+| Database | PostgreSQL |
 | Frontend | React 19 + Vite 8 |
 
-## Project Structure
+---
+
+## Repository Layout
 
 ```
 clinic-website/
-├── backend/            ← Spring Boot monolith
+├── backend/                  ← Project 1: Main Clinic Backend
 │   ├── pom.xml
 │   └── src/main/java/com/healthcare/clinic/
-│       ├── config/     ← DataSeeder, etc.
-│       ├── security/   ← JWT filter, SecurityConfig
-│       ├── identity/   ← Auth, users, roles
-│       ├── patient/    ← Patient module
-│       ├── doctor/     ← Doctor module
-│       ├── appointment/
-│       └── ...         ← (25 domain modules total)
-├── frontend/           ← React/Vite SPA
+├── clinic-ancillary-backend/ ← Project 2: Ancillary & Intelligence Backend
+│   └── src/
+├── frontend/                 ← Project 1 Frontend (React/Vite SPA)
 │   └── src/
 ├── docker-compose.yml
-├── .env.example        ← Copy to .env and fill in values
-└── find_region.sh      ← Helper to detect Supabase region
+└── README.md
 ```
 
-## Prerequisites
+---
 
-- Java 21+
-- Maven 3.9+
-- Node.js 22+ / npm 10+
-- Docker (for local PostgreSQL via docker-compose)
-- A [Supabase](https://supabase.com) project **or** a local PostgreSQL instance
+## Running Locally
 
-## Getting Started
-
-### 1. Configure environment variables
-
+### 1. Start Database
 ```bash
-cp .env.example .env
-# Edit .env and fill in all required values.
-# See comments in .env.example for each variable.
+docker-compose up -d postgres
 ```
 
-> ⚠️ **Never commit `.env`** — it is listed in `.gitignore`.
-
-### 2. Start the databases
-
-```bash
-docker-compose up -d postgres mysql
-```
-
-### 3. Start the backend
-
+### 2. Start Project 1 Backend (Main Clinic Service)
 ```bash
 cd backend
 mvn spring-boot:run
-# Or: mvn clean package && java -jar target/clinic-app-*.jar
 ```
+The backend serves API requests at `http://localhost:8080/api`.
 
-The backend runs on `http://localhost:8080`.
-
-### 4. Start the frontend
-
+### 3. Start Frontend (Project 1 SPA)
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+The frontend runs at `http://localhost:5173`.
 
-The frontend runs on `http://localhost:5173`.
+---
 
-## API
+## Deployment (Render)
 
-All REST endpoints are served under `http://localhost:8080/api/*`.
-
-Key public endpoints (no auth required):
-- `POST /api/auth/{portal}/login`
-- `POST /api/auth/register`
-
-All other endpoints require a valid `Authorization: Bearer <token>` header.
-
-## find_region.sh
-
-Discovers which Supabase pooler region accepts a connection. Requires env vars:
-
-```bash
-SUPABASE_PROJECT_ID=your-project-id PGPASSWORD=your-db-password ./find_region.sh
-```
-
-## Security Notes
-
-- Seed passwords for `admin@clinic.com` and `doctor@clinic.com` are read from `SEED_ADMIN_PASSWORD` / `SEED_DOCTOR_PASSWORD` env vars. The app **refuses to start** if these are unset.
-- `X-Forwarded-For` is trusted as-is for IP logging. In production behind a reverse proxy, set `server.forward-headers-strategy=NATIVE` in `application.yml` and configure trusted proxies.
-- JJWT 0.11.5 uses some deprecated API methods (`SignatureAlgorithm`). Migration to JJWT 0.12.x is recommended when time permits.
-- No automated tests currently exist. Adding JUnit/Mockito unit tests is a tracked follow-up.
-
-## Deployment
-
-The entire application stack (Frontend, Backend, and Database) can be containerized and run locally using Docker Compose.
-
-To start the complete stack:
-```bash
-# Ensure .env is fully configured with SEED_* passwords and SUPABASE_* values
-docker-compose up --build -d
-```
-
-- **Frontend**: Available at `http://localhost:5173`
-- **Backend API**: Available at `http://localhost:8080`
-- **Database**: Postgres running on port `5432`
-
-To shut down the stack:
-```bash
-docker-compose down
-```
+Project 1 and Project 2 feature separate, independent Render deployment configs.
+* **Project 1 Deployment**: Deploys frontend SPA and core clinic backend service (`backend`).
+* **Project 2 Deployment**: Deploys ancillary and intelligence services (`clinic-ancillary-backend`).
