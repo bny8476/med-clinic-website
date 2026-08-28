@@ -6,11 +6,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -25,14 +28,16 @@ import java.util.List;
 import java.util.Set;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 1)
 @Slf4j
 public class GrowthServiceProxyFilter extends OncePerRequestFilter {
+
+    @Autowired
+    private Environment environment;
 
     @Value("${app.growth-service.url:http://localhost:8081}")
     private String growthServiceUrl;
 
-    @Value("${app.gateway.secret:clinic-internal-secret-key-2026}")
+    @Value("${app.gateway.secret:}")
     private String gatewaySecret;
 
     private HttpClient httpClient;
@@ -51,6 +56,10 @@ public class GrowthServiceProxyFilter extends OncePerRequestFilter {
             "/api/ambulance"
     );
 
+    private static final Set<String> PUBLIC_PATH_PREFIXES = Set.of(
+            "/api/ai"
+    );
+
     private static final Set<String> HOP_BY_HOP_HEADERS = Set.of(
             "connection", "keep-alive", "proxy-authenticate", "proxy-authorization",
             "te", "trailers", "transfer-encoding", "upgrade", "host"
@@ -58,6 +67,18 @@ public class GrowthServiceProxyFilter extends OncePerRequestFilter {
 
     @PostConstruct
     public void init() {
+        boolean isDevOrTest = java.util.Arrays.stream(environment.getActiveProfiles())
+                .anyMatch(p -> p.equalsIgnoreCase("dev") || p.equalsIgnoreCase("test"));
+
+        if (!StringUtils.hasText(gatewaySecret) || gatewaySecret.equals("clinic-internal-secret-key-2026")) {
+            if (!isDevOrTest) {
+                throw new IllegalStateException("FATAL: app.gateway.secret (INTERNAL_GATEWAY_SECRET) is missing or using hardcoded default in production!");
+            } else {
+                log.warn("app.gateway.secret is missing or using default in local development mode.");
+                gatewaySecret = "dev_internal_gateway_secret_12345";
+            }
+        }
+
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .followRedirects(HttpClient.Redirect.NORMAL)
@@ -81,6 +102,20 @@ public class GrowthServiceProxyFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+
+        // Enforce JWT authentication check for non-public proxied path prefixes
+        boolean isPublicPath = PUBLIC_PATH_PREFIXES.stream().anyMatch(path::startsWith);
+        if (!isPublicPath) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+                log.warn("Unauthorized proxy attempt for path: {}", path);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"Full authentication is required to access this resource\"}");
+                return;
+            }
+        }
+
         String queryString = request.getQueryString();
         String targetUrl = growthServiceUrl.replaceAll("/+$", "") + path + (queryString != null ? "?" + queryString : "");
 

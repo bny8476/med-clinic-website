@@ -19,7 +19,10 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class JwtUtils {
 
-    @Value("${jwt.secret:defaultSecretKeyThatIsAtLeast32BytesLongForHS256Algorithm!}")
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.core.env.Environment environment;
+
+    @Value("${jwt.secret:}")
     private String jwtSecret;
 
     @Value("${jwt.access-token-expiration-ms:86400000}")
@@ -27,9 +30,16 @@ public class JwtUtils {
 
     @PostConstruct
     public void init() {
-        if (!StringUtils.hasText(jwtSecret) || jwtSecret.length() < 32) {
-            log.warn("JWT_SECRET is missing or short. Using fallback development key.");
-            jwtSecret = "defaultSecretKeyThatIsAtLeast32BytesLongForHS256Algorithm!";
+        boolean isDevOrTest = java.util.Arrays.stream(environment.getActiveProfiles())
+                .anyMatch(p -> p.equalsIgnoreCase("dev") || p.equalsIgnoreCase("test"));
+
+        if (!StringUtils.hasText(jwtSecret) || jwtSecret.length() < 32 || jwtSecret.contains("404E635266556A586E3272357538782F")) {
+            if (!isDevOrTest) {
+                throw new IllegalStateException("FATAL: jwt.secret (JWT_SECRET) is missing, empty, or too short. Configure a strong secret (at least 32 bytes) in environment.");
+            } else {
+                log.warn("JWT_SECRET is missing or weak in local development mode. Using local dev secret.");
+                jwtSecret = "default_dev_secret_key_that_is_long_enough_for_hs256_algorithm_12345";
+            }
         }
     }
 

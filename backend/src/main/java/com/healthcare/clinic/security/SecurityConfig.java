@@ -27,6 +27,7 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter;
+    private final com.healthcare.clinic.config.GrowthServiceProxyFilter growthServiceProxyFilter;
 
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
@@ -76,6 +77,7 @@ public class SecurityConfig {
         
         http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterAfter(growthServiceProxyFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }

@@ -17,7 +17,7 @@ spring:
       ddl-auto: ${DDL_AUTO:validate}
 
 jwt:
-  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  secret: ${JWT_SECRET}
   access-token-expiration-ms: ${JWT_EXPIRATION_MS:900000}
 
 cors:
@@ -33,7 +33,7 @@ app:
   growth-service:
     url: ${GROWTH_SERVICE_URL:http://localhost:8081}
   gateway:
-    secret: ${INTERNAL_GATEWAY_SECRET:clinic-internal-secret-key-2026}
+    secret: ${INTERNAL_GATEWAY_SECRET}
   flyway:
     baseline-on-migrate: true
     baseline-version-clinic: "0"
