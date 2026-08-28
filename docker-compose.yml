@@ -13,7 +13,7 @@ services:
       DB_URL: jdbc:postgresql://postgres:5432/clinic?sslmode=disable
       DB_USER: postgres
       DB_PASSWORD: ${POSTGRES_PASSWORD}
-      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xms96m -Xmx220m -XX:MaxMetaspaceSize=110m -XX:ReservedCodeCacheSize=48m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError}
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--Xms128m -Xmx384m -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=64m -XX:+UseSerialGC}
 
       JWT_SECRET: ${JWT_SECRET}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
