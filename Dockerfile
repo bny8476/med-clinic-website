@@ -22,7 +22,7 @@ USER spring:spring
 COPY --from=build /app/target/*.jar app.jar
 
 ENV PORT=8080
-ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=55.0 -XX:InitialRAMPercentage=25.0 -XX:+UseG1GC -XX:MaxMetaspaceSize=128m -XX:+ExitOnOutOfMemoryError"
+ENV JAVA_TOOL_OPTIONS="-Xms96m -Xmx220m -XX:MaxMetaspaceSize=110m -XX:ReservedCodeCacheSize=48m -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError"
 
 EXPOSE 8080
 

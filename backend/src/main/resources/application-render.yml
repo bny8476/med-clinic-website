@@ -1,4 +1,6 @@
 spring:
+  main:
+    lazy-initialization: false
   jpa:
     open-in-view: false
     hibernate:
