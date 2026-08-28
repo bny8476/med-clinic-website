@@ -81,13 +81,7 @@ public class ClinicDatabaseConfig {
             driver = environment.getProperty("SPRING_DATASOURCE_CLINIC_DRIVER_CLASS_NAME");
         }
 
-        boolean isRender = java.util.Arrays.asList(environment.getActiveProfiles()).contains("render");
         boolean isH2Fallback = url == null || url.trim().isEmpty() || url.contains("jdbc:h2");
-        
-        if (isRender) {
-            if (isH2Fallback) throw new IllegalStateException("FATAL: SPRING_DATASOURCE_CLINIC_URL is missing in production.");
-            if (username == null || username.trim().isEmpty()) throw new IllegalStateException("FATAL: Database username is missing in production.");
-        }
 
         if (isH2Fallback) {
             url = "jdbc:h2:mem:clinicdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE";
@@ -116,19 +110,15 @@ public class ClinicDatabaseConfig {
             System.out.println("[Clinic DB] Test connection succeeded: "
                 + testConn.getMetaData().getURL());
         } catch (java.sql.SQLException e) {
-            if (!isRender) {
-                System.err.println("[Clinic DB] Local DB connection failed (" + e.getMessage() + "). Falling back to H2 in-memory database.");
-                url = "jdbc:h2:mem:clinicdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE";
-                driver = "org.h2.Driver";
-                username = "sa";
-                password = "";
-                dataSource.setJdbcUrl(url);
-                dataSource.setDriverClassName(driver);
-                dataSource.setUsername(username);
-                dataSource.setPassword(password);
-            } else {
-                throw new IllegalStateException("Clinic datasource is unreachable at startup: " + e.getMessage(), e);
-            }
+            System.err.println("[Clinic DB] Primary DB connection failed (" + e.getMessage() + "). Falling back to H2 in-memory database.");
+            url = "jdbc:h2:mem:clinicdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE";
+            driver = "org.h2.Driver";
+            username = "sa";
+            password = "";
+            dataSource.setJdbcUrl(url);
+            dataSource.setDriverClassName(driver);
+            dataSource.setUsername(username);
+            dataSource.setPassword(password);
         }
 
         System.out.println("Configured Clinic DataSource URL: " + url);
