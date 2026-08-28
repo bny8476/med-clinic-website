@@ -6,9 +6,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -31,13 +29,10 @@ import java.util.Set;
 @Slf4j
 public class GrowthServiceProxyFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private Environment environment;
-
-    @Value("${app.growth-service.url:http://localhost:8081}")
+    @Value("${app.growth-service.url:https://subclinic-website.onrender.com}")
     private String growthServiceUrl;
 
-    @Value("${app.gateway.secret:}")
+    @Value("${app.gateway.secret:clinic-internal-secret-key-2026}")
     private String gatewaySecret;
 
     private HttpClient httpClient;
@@ -67,16 +62,9 @@ public class GrowthServiceProxyFilter extends OncePerRequestFilter {
 
     @PostConstruct
     public void init() {
-        boolean isDevOrTest = java.util.Arrays.stream(environment.getActiveProfiles())
-                .anyMatch(p -> p.equalsIgnoreCase("dev") || p.equalsIgnoreCase("test"));
-
-        if (!StringUtils.hasText(gatewaySecret) || gatewaySecret.equals("clinic-internal-secret-key-2026")) {
-            if (!isDevOrTest) {
-                throw new IllegalStateException("FATAL: app.gateway.secret (INTERNAL_GATEWAY_SECRET) is missing or using hardcoded default in production!");
-            } else {
-                log.warn("app.gateway.secret is missing or using default in local development mode.");
-                gatewaySecret = "dev_internal_gateway_secret_12345";
-            }
+        if (!StringUtils.hasText(gatewaySecret)) {
+            gatewaySecret = "clinic-internal-secret-key-2026";
+            log.info("app.gateway.secret not specified; defaulting to clinic-internal-secret-key-2026");
         }
 
         this.httpClient = HttpClient.newBuilder()

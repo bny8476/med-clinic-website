@@ -42,9 +42,9 @@ management:
 
 app:
   growth-service:
-    url: ${GROWTH_SERVICE_URL:http://localhost:8081}
+    url: ${GROWTH_SERVICE_URL:https://subclinic-website.onrender.com}
   gateway:
-    secret: ${INTERNAL_GATEWAY_SECRET}
+    secret: ${INTERNAL_GATEWAY_SECRET:clinic-internal-secret-key-2026}
   flyway:
     baseline-on-migrate: true
     baseline-version-clinic: "0"

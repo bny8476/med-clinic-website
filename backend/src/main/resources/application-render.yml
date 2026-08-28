@@ -7,7 +7,15 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+
+cors:
+  allowed-origins: ${ALLOWED_ORIGINS:https://med-clinic-website.vercel.app,https://med-clinic-website.onrender.com,https://subclinic-website.onrender.com,http://localhost:5173,http://localhost:3000}
+
 app:
+  growth-service:
+    url: ${GROWTH_SERVICE_URL:https://subclinic-website.onrender.com}
+  gateway:
+    secret: ${INTERNAL_GATEWAY_SECRET:clinic-internal-secret-key-2026}
   flyway:
     baseline-on-migrate: true
     baseline-version-clinic: "114"

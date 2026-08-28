@@ -1,6 +1,5 @@
 package com.healthcare.clinic.security;
 
-import org.springframework.beans.factory.annotation.Value;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 import java.util.Arrays;
 @Configuration
@@ -28,9 +25,7 @@ public class SecurityConfig {
     private final AuthEntryPointJwt unauthorizedHandler;
     private final AuthTokenFilter authTokenFilter;
     private final com.healthcare.clinic.config.GrowthServiceProxyFilter growthServiceProxyFilter;
-
-    @Value("${cors.allowed-origins}")
-    private String allowedOrigins;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -54,7 +49,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http, org.springframework.core.env.Environment env) throws Exception {
         boolean isProd = Arrays.asList(env.getActiveProfiles()).contains("prod");
 
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(AbstractHttpConfigurer::disable)
             .headers(headers -> headers
                 .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
@@ -65,14 +60,16 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> {
+                auth.requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll();
                 auth.requestMatchers("/api/auth/**", "/api/health", "/api/ai/**").permitAll();
                 auth.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/sse/appointments").permitAll();
                 auth.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/finance/payments/webhook/stripe").permitAll();
                 if (!isProd) {
                     auth.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
                 }
-                auth.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/doctors").permitAll()
-                    .anyRequest().authenticated();
+                auth.requestMatchers(org.springframework.http.HttpMethod.GET, "/api/doctors", "/api/departments", "/api/clinic/stats").permitAll();
+                auth.requestMatchers(org.springframework.http.HttpMethod.POST, "/api/appointments/guest").permitAll();
+                auth.anyRequest().authenticated();
             });
         
         http.authenticationProvider(authenticationProvider());
@@ -80,27 +77,5 @@ public class SecurityConfig {
         http.addFilterAfter(growthServiceProxyFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
-    }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        if (allowedOrigins != null && !allowedOrigins.isBlank()) {
-            java.util.List<String> origins = Arrays.stream(allowedOrigins.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .collect(java.util.stream.Collectors.toList());
-            configuration.setAllowedOriginPatterns(origins);
-        } else {
-            // Fail fast rather than opening credentialed CORS to any origin
-            throw new IllegalStateException("cors.allowed-origins must be configured");
-        }
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "authorization", "content-type", "x-auth-token", "*"));
-        configuration.setExposedHeaders(Arrays.asList("x-auth-token", "Authorization"));
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
     }
 }
